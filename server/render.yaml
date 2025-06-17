@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: make-my-trip-clone-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    branch: main
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLERK_WEBHOOK_SECRET
+        sync: false
+      - key: MONGO_URL
+        sync: false
