@@ -14,6 +14,8 @@ import RoomDetails from './pages/RoomDetails'
 import Footer from './components/Footer'
 import MyBookings from './pages/MyBookings'
 import Loader from './components/Loader'
+import Flight from './pages/Flight'
+import FlightBooking from './pages/FlightBooking'
 
 const App = () => {
 
@@ -31,14 +33,16 @@ const App = () => {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/rooms' element={<AllRooms />} />
+       <Route path="/flights" element={<Flight/>}/>
         <Route path='/rooms/:id' element={<RoomDetails />} />
         <Route path='my-bookings' element={<MyBookings />} />
         < Route path="/loader/:nextUrl" element={<Loader />} />
         <Route path="/owner" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="add-room" element={<AddRoom />} />
-          <Route path="list-room" element={<ListRoom />} />
+          <Route path="list-room" element={<ListRoom />} />          
         </Route>
+         <Route path="/flight/:id/flight-booking" element={<Flight />} />
       </Routes>
       </div>
       <Footer />

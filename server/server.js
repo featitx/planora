@@ -9,7 +9,7 @@ import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import clerkWebhooks from "./controllers/clerkWebhooks.js";
 import connectCloudinary from "./configs/cloudinary.js";
-import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
+import { razorpayWebhook } from "./controllers/razorpayWebhooks.js";
 
 connectDB();
 connectCloudinary();
@@ -18,7 +18,7 @@ const app = express();
 app.use(cors()); // Enable Cross-Origin Resource Sharing
 
 // API to listen to Stripe Webhooks
-app.post("/api/stripe",express.raw({ type: "application/json" }),stripeWebhooks);
+app.post("/api/razorpay",express.raw({ type: "application/json" }), razorpayWebhook);
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -36,6 +36,6 @@ app.use("/api/bookings", bookingRouter);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
+// app.listen(3000, () => {
+//   console.log("Server running on http://localhost:3000");
+// });
