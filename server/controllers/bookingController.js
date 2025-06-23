@@ -1,29 +1,26 @@
+// controllers/bookingController.js
 import transporter from "../configs/nodemailer.js";
 import Booking from "../models/Booking.js";
 import Hotel from "../models/Hotel.js";
 import Room from "../models/Room.js";
-import stripe from "stripe";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
-// Function to Check Availablity of Room
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_SECRET,
+});
+
+
 const checkAvailability = async ({ checkInDate, checkOutDate, room }) => {
-
-  try {
-    const bookings = await Booking.find({
-      room,
-      checkInDate: { $lte: checkOutDate },
-      checkOutDate: { $gte: checkInDate },
-    });
-
-    const isAvailable = bookings.length === 0;
-    return isAvailable;
-
-  } catch (error) {
-    console.error(error.message);
-  }
+  const bookings = await Booking.find({
+    room,
+    checkInDate: { $lte: checkOutDate },
+    checkOutDate: { $gte: checkInDate },
+  });
+  return bookings.length === 0;
 };
 
-// API to check availability of room
-// POST /api/bookings/check-availability
 export const checkAvailabilityAPI = async (req, res) => {
   try {
     const { room, checkInDate, checkOutDate } = req.body;
@@ -34,36 +31,17 @@ export const checkAvailabilityAPI = async (req, res) => {
   }
 };
 
-// API to create a new booking
-// POST /api/bookings/book
 export const createBooking = async (req, res) => {
   try {
-
     const { room, checkInDate, checkOutDate, guests } = req.body;
-
     const user = req.user._id;
 
-    // Before Booking Check Availability
-    const isAvailable = await checkAvailability({
-      checkInDate,
-      checkOutDate,
-      room,
-    });
+    const isAvailable = await checkAvailability({ checkInDate, checkOutDate, room });
+    if (!isAvailable) return res.json({ success: false, message: "Room is not available" });
 
-    if (!isAvailable) {
-      return res.json({ success: false, message: "Room is not available" });
-    }
-
-    // Get totalPrice from Room
     const roomData = await Room.findById(room).populate("hotel");
     let totalPrice = roomData.pricePerNight;
-
-    // Calculate totalPrice based on nights
-    const checkIn = new Date(checkInDate);
-    const checkOut = new Date(checkOutDate);
-    const timeDiff = checkOut.getTime() - checkIn.getTime();
-    const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
+    const nights = Math.ceil((new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 3600 * 24));
     totalPrice *= nights;
 
     const booking = await Booking.create({
@@ -76,39 +54,21 @@ export const createBooking = async (req, res) => {
       totalPrice,
     });
 
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
-      to: req.user.email,
-      subject: 'Hotel Booking Details',
-      html: `
-        <h2>Your Booking Details</h2>
-        <p>Dear ${req.user.username},</p>
-        <p>Thank you for your booking! Here are your details:</p>
-        <ul>
-          <li><strong>Booking ID:</strong> ${booking.id}</li>
-          <li><strong>Hotel Name:</strong> ${roomData.hotel.name}</li>
-          <li><strong>Location:</strong> ${roomData.hotel.address}</li>
-          <li><strong>Date:</strong> ${booking.checkInDate.toDateString()}</li>
-          <li><strong>Booking Amount:</strong>  ${process.env.CURRENCY || '$'} ${booking.totalPrice} /night</li>
-        </ul>
-        <p>We look forward to welcoming you!</p>
-        <p>If you need to make any changes, feel free to contact us.</p>
-      `,
+    const options = {
+      amount: totalPrice * 100,
+      currency: "INR",
+      receipt: `receipt_order_${booking._id}`,
+      notes: { bookingId: booking._id.toString() },
     };
 
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, message: "Booking created successfully" });
-
+    const order = await razorpay.orders.create(options);
+    res.json({ success: true, order });
   } catch (error) {
     console.log(error);
-    
     res.json({ success: false, message: "Failed to create booking" });
   }
 };
 
-// API to get all bookings for a user
-// GET /api/bookings/user
 export const getUserBookings = async (req, res) => {
   try {
     const user = req.user._id;
@@ -119,18 +79,14 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
-
 export const getHotelBookings = async (req, res) => {
   try {
     const hotel = await Hotel.findOne({ owner: req.auth.userId });
-    if (!hotel) {
-      return res.json({ success: false, message: "No Hotel found" });
-    }
+    if (!hotel) return res.json({ success: false, message: "No Hotel found" });
+
     const bookings = await Booking.find({ hotel: hotel._id }).populate("room hotel user").sort({ createdAt: -1 });
-    // Total Bookings
     const totalBookings = bookings.length;
-    // Total Revenue
-    const totalRevenue = bookings.reduce((acc, booking) => acc + booking.totalPrice, 0);
+    const totalRevenue = bookings.reduce((acc, b) => acc + b.totalPrice, 0);
 
     res.json({ success: true, dashboardData: { totalBookings, totalRevenue, bookings } });
   } catch (error) {
@@ -138,47 +94,61 @@ export const getHotelBookings = async (req, res) => {
   }
 };
 
-
-export const stripePayment = async (req, res) => {
+export const razorpayPayment = async (req, res) => {
   try {
-
     const { bookingId } = req.body;
 
-    const booking = await Booking.findById(bookingId);
-    const roomData = await Room.findById(booking.room).populate("hotel");
-    const totalPrice = booking.totalPrice;
+    const booking = await Booking.findById(bookingId).populate("room hotel");
 
-    const { origin } = req.headers;
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
 
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-
-    // Create Line Items for Stripe
-    const line_items = [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: roomData.hotel.name,
-          },
-          unit_amount: totalPrice * 100,
-        },
-        quantity: 1,
+    const options = {
+      amount: booking.totalPrice * 100, 
+      currency: "INR",
+      receipt: `receipt_order_${booking._id}`,
+      notes: {
+        bookingId: booking._id.toString()
       },
-    ];
+    };
 
-    // Create Checkout Session
-    const session = await stripeInstance.checkout.sessions.create({
-      line_items,
-      mode: "payment",
-      success_url: `${origin}/loader/my-bookings`,
-      cancel_url: `${origin}/my-bookings`,
-      metadata: {
-        bookingId,
-      },
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      success: true,
+      order_id: order.id,
+      amount: order.amount,
+      hotelName: booking.hotel.name,
     });
-    res.json({ success: true, url: session.url });
 
   } catch (error) {
-    res.json({ success: false, message: "Payment Failed" });
+    console.error("Payment error:", error);
+    res.status(500).json({ success: false, message: "Payment creation failed" });
   }
-}
+};
+
+export const verifyPayment = async (req, res) => {
+  try {
+    const { bookingId, paymentId, orderId, signature } = req.body;
+
+    // Create expected signature
+    const generated_signature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .update(orderId + "|" + paymentId)
+      .digest("hex");
+
+    if (generated_signature !== signature) {
+      return res.status(400).json({ success: false, message: "Invalid payment signature" });
+    }
+
+    // Mark booking as paid
+    await Booking.findByIdAndUpdate(bookingId, { isPaid: true });
+
+    res.json({ success: true, message: "Payment verified and booking updated" });
+
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(500).json({ success: false, message: "Payment verification failed" });
+  }
+};

@@ -135,9 +135,9 @@ const AllRooms = () => {
                 </div>
 
                 {filteredRooms.map((room) => (
-                    <div key={room._id} className='flex flex-col md:flex-row items-start py-10 gap-6 border-b border-gray-300 last:pb-30 last:border-0'>
+                    <div key={room._id} className='flex flex-col md:flex-row items-start py-10 gap-6 border-b border-gray-300 last:mb-30 last:border-0 bg-gradient-to-r from-blue-50 to-purple-50 p-5 m-5 rounded-[15px]'>
                         {/* Room Image */}
-                        <img title='View Room Details' onClick={() => { navigate(`/rooms/${room._id}`); scrollTo(0, 0) }} src={room.images[0]} alt="hotel-img" className='max-h-65 md:w-1/2 rounded-xl shadow-lg object-cover cursor-pointer' />
+                        <img title='View Room Details' onClick={() => { navigate(`/rooms/${room._id}`); scrollTo(0, 0) }} src={room.images[0]} alt="hotel-img" className='max-h-90 md:w-1/2 rounded-xl shadow-lg object-cover cursor-pointer' />
                         <div className='md:w-1/2 flex flex-col gap-2'>
                             <p className='text-gray-500'>{room.hotel.city}</p>
                             <p onClick={() => { navigate(`/rooms/${room._id}`); scrollTo(0, 0) }} className='text-gray-800 text-3xl font-playfair cursor-pointer' title='View Room Details'>{room.hotel.name}</p>
@@ -166,7 +166,7 @@ const AllRooms = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white w-80 border border-gray-300 text-gray-600 max-lg:mb-8 min-lg:mt-16">
+            <div className="bg-white w-80 border border-gray-300 text-gray-600 max-lg:mb-8 min-lg:mt-16 mt-0 mx-auto mb-5">
                 <div className={`flex items-center justify-between px-5 py-2.5 min-lg:border-b border-gray-300 ${openFilters && "border-b"}`}>
                     <p className='text-base font-medium text-gray-800'>FILTERS</p>
                     <div className='text-xs cursor-pointer'>

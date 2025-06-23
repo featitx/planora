@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { assets, roomCommonData } from '../assets/assets'
 import { useAppContext } from '../context/AppContext';
 import { useParams } from 'react-router-dom';
+import { useClerk, UserButton } from "@clerk/clerk-react";
 import StarRating from '../components/StarRating';
 import toast from 'react-hot-toast';
 
@@ -16,6 +17,9 @@ const RoomDetails = () => {
     const [guests, setGuests] = useState(1);
 
     const [isAvailable, setIsAvailable] = useState(false);
+    
+    const { openSignIn } = useClerk()
+    
 
     // Check if the Room is Available
     const checkAvailability = async () => {
@@ -62,6 +66,7 @@ const RoomDetails = () => {
             }
         } catch (error) {
             toast.error(error.message)
+            openSignIn()
         }
     }
 
@@ -98,7 +103,7 @@ const RoomDetails = () => {
                 <div className='grid grid-cols-2 gap-4 lg:w-1/2 w-full'>
                     {room?.images.length > 1 && room.images.map((image, index) => (
                         <img key={index} onClick={() => setMainImage(image)}
-                            className={`w-full rounded-xl shadow-md object-cover cursor-pointer ${mainImage === image && 'outline-3 outline-orange-500'}`} src={image} alt='Room Image' />
+                            className={`w-full rounded-xl shadow-md object-cover cursor-pointer h-[220px] ${mainImage === image && 'outline-3 outline-orange-500'}`} src={image} alt='Room Image' />
                     ))}
                 </div>
             </div>
