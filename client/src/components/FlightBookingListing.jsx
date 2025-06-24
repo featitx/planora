@@ -7,9 +7,9 @@ import { Plane, Clock, Calendar, Users, MapPin, Search } from 'lucide-react';
 const FlightBookingListing = ({flights}) => {
    
  
-  const [fromCity, setFromCity] = useState('BOM');
-  const [toCity, setToCity] = useState('DEL');
-  const [selectedDate, setSelectedDate] = useState('2025-06-20');
+  const [fromCity, setFromCity] = useState('');
+  const [toCity, setToCity] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
   
  
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,9 +76,9 @@ const FlightBookingListing = ({flights}) => {
   }, [flights, fromCity, toCity, selectedDate, searchTerm, maxPrice, selectedClass, selectedStops, sortBy]);
 
   const clearFilters = () => {
-    setFromCity('BOM');
-    setToCity('DEL');
-    setSelectedDate('2025-06-20');
+    setFromCity('');
+    setToCity('');
+    setSelectedDate('');
     setSearchTerm('');
     setMaxPrice('');
     setSelectedClass('');
@@ -90,14 +90,15 @@ const FlightBookingListing = ({flights}) => {
 const navigate = useNavigate();
 
 const handleBooking = (flight) => {
-  navigate(`/flight/${flight.id}/flight-booking`, { state: { flight } });
+  navigate(`/flight/${flight._id}/flight-booking`, { state: { flight } });
 };
 
   const availableFlights = filteredAndSortedFlights.filter(flight => flight.availableSeats > 0);
   const soldOutFlights = filteredAndSortedFlights.filter(flight => flight.availableSeats === 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4 pt-[22%] lg:pt-[8%] ">
+      
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
