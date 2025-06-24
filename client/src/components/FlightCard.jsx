@@ -30,7 +30,7 @@ const FlightCard = ({ flight, onBook }) => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-gray-800">${flight.price}</p>
+          <p className="text-2xl font-bold text-gray-800">₹{flight.price}</p>
           <p className="text-sm text-gray-500">per person</p>
         </div>
       </div>
