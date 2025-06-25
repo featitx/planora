@@ -1,5 +1,5 @@
 import express from 'express';
-import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node'; // Clerk authentication middleware
+import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node'; 
 import {
   listFlights,
   getFlightById,
