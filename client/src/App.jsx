@@ -16,6 +16,7 @@ import MyBookings from './pages/MyBookings'
 import Loader from './components/Loader'
 import Flight from './pages/Flight'
 import FlightBooking from './pages/FlightBooking'
+import FlightBookingHistory from './pages/FlightBookingHistory'
 
 const App = () => {
 
@@ -43,6 +44,8 @@ const App = () => {
           <Route path="list-room" element={<ListRoom />} />          
         </Route>
          <Route path="/flight/:id/flight-booking" element={<Flight />} />
+         <Route path="/flight/flight-booking-history" element={<FlightBookingHistory />} />
+
       </Routes>
       </div>
       <Footer />

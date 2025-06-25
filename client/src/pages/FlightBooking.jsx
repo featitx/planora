@@ -112,10 +112,10 @@ const FlightBooking = ({ onBack }) => {
 
   const isFormValid = () => {
     const passengersValid = passengers.every(
-      p => p.firstName && p.lastName && p.email && p.phone && p.dateOfBirth &&  p.email &&
-           p.phone
+      p => p.firstName && p.lastName && p.email && p.phone && p.dateOfBirth
     );
-    return passengersValid;
+
+    return [passengersValid , ] ;
   };
 
   const handleConfirmBooking = async () => {
@@ -182,7 +182,7 @@ const FlightBooking = ({ onBack }) => {
 
             if (verifyRes.data.success) {
               toast.success("Payment verified! Booking confirmed!");
-              navigate("/flights"); // Or user bookings page
+              navigate("/flight/flight-booking-history"); 
             } else {
               toast.error(verifyRes.data.message);
             }

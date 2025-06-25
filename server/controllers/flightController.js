@@ -127,15 +127,23 @@ export const createFlightBooking = async (req, res) => {
 
 export const getUserFlightBookings = async (req, res) => {
   try {
-   
-    const bookings = await FlightBooking.find({ user: req.user.id })
+    console.log("req.auth in getUserFlightBookings:", req.auth); 
+
+    if (!req.auth || !req.auth.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized: user not found" });
+    }
+
+    const bookings = await FlightBooking.find({ user: req.auth.userId }) 
       .populate("flight")
       .sort({ createdAt: -1 });
+
     res.json({ success: true, bookings });
   } catch (error) {
-    res.json({ success: false, message: "Failed to fetch flight bookings" });
+    console.error("GetUserFlightBookings error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch flight bookings", error: error.message });
   }
 };
+
 
 export const razorpayFlightPayment = async (req, res) => {
   try {
