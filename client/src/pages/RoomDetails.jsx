@@ -96,7 +96,7 @@ const RoomDetails = () => {
             {/* Room Images */}
             <div className='flex flex-col lg:flex-row mt-6 gap-6'>
                 <div className='lg:w-1/2 w-full'>
-                    <img className='w-full rounded-xl shadow-lg object-cover'
+                    <img className='w-full rounded-xl shadow-lg object-cover h-full max-h-[465px]'
                         src={mainImage} alt='Room Image' />
                 </div>
 
