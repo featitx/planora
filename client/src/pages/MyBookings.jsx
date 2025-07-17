@@ -25,7 +25,6 @@ const MyBookings = () => {
 
   const handlePayment = async (bookingId) => {
     try {
-      // 1️⃣ Get Razorpay order details from backend
       const { data } = await axios.post(
         '/api/bookings/razorpay-payment',
         { bookingId },
@@ -38,7 +37,7 @@ const MyBookings = () => {
         return toast.error(data.message);
       }
 
-      // 2️⃣ Setup Razorpay options
+     
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: data.amount,
@@ -48,7 +47,7 @@ const MyBookings = () => {
         order_id: data.order_id,
         handler: async function (response) {
           try {
-            // 3️⃣ Verify payment on backend
+           
             const verifyRes = await axios.post(
               '/api/bookings/verify-payment',
               {

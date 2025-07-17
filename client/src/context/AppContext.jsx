@@ -36,8 +36,6 @@ export const AppProvider = ({ children }) => {
                 setIsOwner(data.role === "hotelOwner");
                 setSearchedCities(data.recentSearchedCities)
             } else {
-                // Retry Fetching User Details after 5 seconds
-                // Useful when user creates account using email & password
                 setTimeout(() => {
                     fetchUser();
                 }, 2000);
